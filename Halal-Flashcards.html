@@ -1,0 +1,191 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Halal Flashcards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: soft kawaii card. An original little mascot (rice ball, fish, teacup) greets the staff and reacts to their tap; English result sits below for the traveller */
+:root{
+  --bg:#e4f1e2; --surface:#fffdf8; --ink:#2f2d3a; --muted:#625f70; --line:#c9d9c7; --outline:#34323f;
+  --yes:#1f7a4d; --yes-bg:#d8f2e2; --no:#b3261e; --no-bg:#fde0dd; --ask:#8a5a00; --ask-bg:#fdf0cf;
+  --accent:#e0709a; --accent-ink:#ffffff; --bubble:#ffe9f0; --blush:#ff9fb8;
+  --rice:#ffffff; --nori:#3f4a44; --fish:#ffc3a0; --cup:#cdeaf7; --steam:#b9c9cf;
+  --jp:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",Meiryo,system-ui,sans-serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17201b; --surface:#212b26; --ink:#f0ece6; --muted:#b4b2bd; --line:#36443c; --outline:#2b2933;
+  --yes:#6fd6a0; --yes-bg:#16382a; --no:#ff9a90; --no-bg:#43201d; --ask:#f1c15a; --ask-bg:#3d3112;
+  --accent:#f08ab0; --accent-ink:#2a1420; --bubble:#4a2a38; --blush:#ff9fb8; --steam:#7d8f95; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17201b; --surface:#212b26; --ink:#f0ece6; --muted:#b4b2bd; --line:#36443c; --outline:#2b2933;
+  --yes:#6fd6a0; --yes-bg:#16382a; --no:#ff9a90; --no-bg:#43201d; --ask:#f1c15a; --ask-bg:#3d3112;
+  --accent:#f08ab0; --accent-ink:#2a1420; --bubble:#4a2a38; --blush:#ff9fb8; --steam:#7d8f95; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);padding-block:16px 28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:34rem;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.top h1{font-size:1rem;margin:0;letter-spacing:.02em}
+.top span{color:var(--muted);font-size:.875rem;font-variant-numeric:tabular-nums}
+.ask-note{font-family:var(--jp);color:var(--muted);font-size:.9rem;margin:0;line-height:1.5}
+.card{background:var(--surface);border:2px solid var(--outline);border-radius:26px;padding:18px 16px 20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 5px 0 var(--outline)}
+.hello{display:flex;align-items:center;gap:10px}
+#mascot{width:104px;height:96px;flex:none}
+.bubble{position:relative;background:var(--bubble);border:2px solid var(--outline);border-radius:18px;padding:9px 14px;font-family:var(--jp);font-weight:700;font-size:1.05rem;min-width:0}
+.bubble::before{content:"";position:absolute;left:-9px;top:50%;width:14px;height:14px;background:var(--bubble);border-left:2px solid var(--outline);border-bottom:2px solid var(--outline);transform:translateY(-50%) rotate(45deg)}
+.q-jp{font-family:var(--jp);font-size:1.4rem;line-height:1.55;font-weight:700;margin:0;text-wrap:balance}
+.q-en{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font-family:var(--jp);border:2px solid var(--outline);background:var(--surface);color:var(--ink);border-radius:20px;
+  padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;min-height:104px;box-shadow:0 4px 0 var(--outline)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--outline)}
+.btn b{font-size:2.6rem;line-height:1;font-weight:700}
+.btn span{font-size:1.05rem;font-weight:700}
+.btn.y b,.btn.y span{color:var(--yes)} .btn.n b,.btn.n span{color:var(--no)}
+.btn[aria-pressed="true"].y{background:var(--yes-bg)}
+.btn[aria-pressed="true"].n{background:var(--no-bg)}
+.btn.u{grid-column:1/-1;min-height:0;flex-direction:row;justify-content:center;gap:10px;padding:11px}
+.btn.u b{font-size:1.4rem;color:var(--ask)} .btn.u span{color:var(--ask)}
+.btn[aria-pressed="true"].u{background:var(--ask-bg)}
+.btn:focus-visible,.nav button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.result{border-radius:18px;padding:14px 16px;min-height:4.5rem;display:flex;flex-direction:column;gap:4px;border:2px solid var(--line);background:var(--surface)}
+.result .tag{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.result .msg{font-size:1.05rem;line-height:1.4;font-weight:700}
+.result.good{background:var(--yes-bg);border-color:var(--yes)} .result.good .msg{color:var(--yes)}
+.result.bad{background:var(--no-bg);border-color:var(--no)} .result.bad .msg{color:var(--no)}
+.result.unsure{background:var(--ask-bg);border-color:var(--ask)} .result.unsure .msg{color:var(--ask)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.nav button{font:inherit;font-weight:700;background:var(--accent);color:var(--accent-ink);border:2px solid var(--outline);border-radius:16px;padding:11px 18px;cursor:pointer;min-width:6.5rem;box-shadow:0 3px 0 var(--outline)}
+.nav button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--outline)}
+.nav button[disabled]{opacity:.35;cursor:default;box-shadow:none}
+.dots{display:flex;gap:7px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line);border:2px solid var(--outline)}
+.dots i.on{background:var(--accent)}
+.foot{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:no-preference){#mascot.hop{animation:hop .45s ease-out}.result{transition:background .15s,border-color .15s}}
+</style>
+
+<main>
+  <div class="top"><h1>Halal Flashcards</h1><span id="count">1 / 6</span></div>
+  <p class="ask-note">お手数をおかけします。下のボタンを押してください。<br>Please tap a button below. (Staff: ○ yes / ✕ no)</p>
+
+  <section class="card" aria-live="polite">
+    <div class="hello">
+      <svg id="mascot" viewBox="0 0 120 110" role="img" aria-label="Little mascot"></svg>
+      <div class="bubble" id="bub">おねがいします！</div>
+    </div>
+    <p class="q-jp" id="qjp"></p>
+    <p class="q-en" id="qen"></p>
+    <div class="btns" role="group" aria-label="Answer">
+      <button class="btn y" id="by" aria-pressed="false" type="button"><b>○</b><span>はい</span></button>
+      <button class="btn n" id="bn" aria-pressed="false" type="button"><b>✕</b><span>いいえ</span></button>
+      <button class="btn u" id="bu" aria-pressed="false" type="button"><b>？</b><span>わかりません</span></button>
+    </div>
+  </section>
+
+  <div class="result" id="res" role="status"><span class="tag">Answer</span><span class="msg">Waiting for a tap…</span></div>
+
+  <div class="nav">
+    <button id="prev" type="button">Back</button>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <button id="next" type="button">Next</button>
+  </div>
+
+  <p class="foot">Staff may not know every ingredient, such as dashi, sauces or cooking sake. If the answer is unsure, choose a simple dish or buy packaged food with a halal label.</p>
+</main>
+
+<script>
+var cards=[
+ {jp:"私はムスリムです。豚肉、ラード、ゼラチン、アルコールは食べられません。この料理は大丈夫ですか？",
+  en:"I am Muslim. I cannot eat pork, lard, gelatin or alcohol. Is this dish okay for me?",
+  y:["good","Yes, this dish should be okay for you."],n:["bad","No, this dish is not okay. Do not eat it."]},
+ {jp:"これは豚肉やアルコール（みりんや料理酒を含む）を使っていますか？",
+  en:"Does this contain pork or alcohol (including mirin or cooking sake)?",
+  y:["bad","Yes, it contains pork or alcohol. Avoid it."],n:["good","No, it does not contain pork or alcohol."]},
+ {jp:"スープに豚のだしは入っていますか？",
+  en:"Does the soup or broth contain pork?",
+  y:["bad","Yes, the broth contains pork. Avoid it."],n:["good","No, the broth has no pork."]},
+ {jp:"豚肉を使っていない料理はありますか？",
+  en:"Do you have any dishes that don't use pork?",
+  y:["good","Yes, there are dishes without pork. Ask them to point them out."],n:["bad","No pork-free dishes here. Try another place."]},
+ {jp:"ハラール対応のメニューはありますか？",
+  en:"Do you have a halal-friendly menu?",
+  y:["good","Yes, they have a halal-friendly menu."],n:["bad","No halal-friendly menu here."]},
+ {jp:"厨房で原材料を確認していただけますか？",
+  en:"Could you check the ingredients with the kitchen?",
+  y:["good","Yes, they will check with the kitchen. Wait for their answer."],n:["bad","They cannot check. Choose a simple dish or go elsewhere."]}
+];
+var unsure="Not sure. Do not risk it. Pick a plain dish (grilled fish, plain rice) or ask someone else.";
+var i=0, ans={};
+var $=function(id){return document.getElementById(id)};
+
+/* Original mascots: onigiri, fish, teacup. Faces swap with the answer. */
+var O='stroke="var(--outline)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"';
+var bodies=[
+ // rice ball with a nori strip
+ {face:[60,64], body:'<path d="M60 8C74 8 108 76 104 92C100 104 20 104 16 92C12 76 46 8 60 8Z" fill="var(--rice)" '+O+'/>'+
+   '<path d="M38 84H82V100H38Z" fill="var(--nori)" '+O+'/>'},
+ // little fish
+ {face:[48,56], body:'<path d="M92 56L114 36V76Z" fill="var(--fish)" '+O+'/>'+
+   '<ellipse cx="56" cy="58" rx="42" ry="34" fill="var(--fish)" '+O+'/>'+
+   '<path d="M52 24C58 14 68 14 72 22" fill="none" '+O+'/>'},
+ // teacup with steam
+ {face:[60,64], body:'<path d="M44 20C38 12 50 8 44 2M64 22C58 14 70 10 64 4" fill="none" stroke="var(--steam)" stroke-width="4" stroke-linecap="round"/>'+
+   '<path d="M90 48C112 46 112 78 88 76" fill="none" '+O+'/>'+
+   '<path d="M24 34H94V70C94 90 78 100 59 100C40 100 24 90 24 70Z" fill="var(--cup)" '+O+'/>'+
+   '<ellipse cx="59" cy="102" rx="44" ry="6" fill="var(--surface)" '+O+'/>'}
+];
+function face(cx,cy,mood){
+  var e,m;
+  var L=cx-17,R=cx+17;
+  if(mood==="happy"){
+    e='<path d="M'+(L-6)+' '+cy+'Q'+L+' '+(cy-9)+' '+(L+6)+' '+cy+'M'+(R-6)+' '+cy+'Q'+R+' '+(cy-9)+' '+(R+6)+' '+cy+'" fill="none" '+O+'/>';
+    m='<path d="M'+(cx-9)+' '+(cy+8)+'Q'+cx+' '+(cy+22)+' '+(cx+9)+' '+(cy+8)+'Z" fill="var(--blush)" '+O+'/>';
+  }else if(mood==="sad"){
+    e='<circle cx="'+L+'" cy="'+cy+'" r="3.5" fill="var(--outline)"/><circle cx="'+R+'" cy="'+cy+'" r="3.5" fill="var(--outline)"/>'+
+      '<path d="M'+(L-6)+' '+(cy-9)+'L'+(L+5)+' '+(cy-12)+'M'+(R+6)+' '+(cy-9)+'L'+(R-5)+' '+(cy-12)+'" fill="none" '+O+'/>';
+    m='<path d="M'+(cx-7)+' '+(cy+16)+'Q'+cx+' '+(cy+8)+' '+(cx+7)+' '+(cy+16)+'" fill="none" '+O+'/>';
+  }else if(mood==="think"){
+    e='<circle cx="'+L+'" cy="'+cy+'" r="3.5" fill="var(--outline)"/><circle cx="'+R+'" cy="'+cy+'" r="3.5" fill="var(--outline)"/>';
+    m='<path d="M'+(cx-6)+' '+(cy+12)+'H'+(cx+6)+'" fill="none" '+O+'/>'+
+      '<text x="'+(R+16)+'" y="'+(cy-14)+'" font-size="22" font-weight="700" fill="var(--outline)" font-family="sans-serif">?</text>';
+  }else{
+    e='<circle cx="'+L+'" cy="'+cy+'" r="3.5" fill="var(--outline)"/><circle cx="'+R+'" cy="'+cy+'" r="3.5" fill="var(--outline)"/>';
+    m='<path d="M'+(cx-7)+' '+(cy+10)+'Q'+(cx-3.5)+' '+(cy+15)+' '+cx+' '+(cy+10)+'Q'+(cx+3.5)+' '+(cy+15)+' '+(cx+7)+' '+(cy+10)+'" fill="none" '+O+'/>';
+  }
+  var b='<ellipse cx="'+(L-9)+'" cy="'+(cy+9)+'" rx="7" ry="4.5" fill="var(--blush)" opacity=".85"/><ellipse cx="'+(R+9)+'" cy="'+(cy+9)+'" rx="7" ry="4.5" fill="var(--blush)" opacity=".85"/>';
+  return b+e+m;
+}
+function drawMascot(mood){
+  var b=bodies[i%bodies.length];
+  $("mascot").innerHTML=b.body+face(b.face[0],b.face[1],mood);
+}
+
+function render(){
+  var c=cards[i];
+  $("qjp").textContent=c.jp; $("qen").textContent=c.en;
+  $("count").textContent=(i+1)+" / "+cards.length;
+  var a=ans[i]||"";
+  $("by").setAttribute("aria-pressed",a==="y"); $("bn").setAttribute("aria-pressed",a==="n"); $("bu").setAttribute("aria-pressed",a==="u");
+  var r=$("res"); r.className="result";
+  var mood="calm";
+  if(!a){r.querySelector(".msg").textContent="Waiting for a tap…"; r.querySelector(".tag").textContent="Answer"; $("bub").textContent="おねがいします！";}
+  else{
+    var cls,msg;
+    if(a==="u"){cls="unsure";msg=unsure;mood="think";$("bub").textContent="ありがとう！ むずかしいね";}
+    else{cls=c[a][0];msg=c[a][1];mood=cls==="good"?"happy":"sad";$("bub").textContent="ありがとうございます！";}
+    r.className="result "+cls;
+    r.querySelector(".tag").textContent=a==="y"?"Staff tapped ○ (yes)":a==="n"?"Staff tapped ✕ (no)":"Staff tapped ？ (not sure)";
+    r.querySelector(".msg").textContent=msg;
+  }
+  drawMascot(mood);
+  $("prev").disabled=i===0; $("next").disabled=i===cards.length-1;
+  var d=$("dots"); d.innerHTML="";
+  for(var k=0;k<cards.length;k++){var s=document.createElement("i"); if(k===i)s.className="on"; d.appendChild(s);}
+}
+function hop(){var m=$("mascot");m.classList.remove("hop");void m.getBoundingClientRect();m.classList.add("hop");}
+function pick(v){ans[i]=v;render();hop();}
+$("by").onclick=function(){pick("y")}; $("bn").onclick=function(){pick("n")}; $("bu").onclick=function(){pick("u")};
+$("prev").onclick=function(){if(i>0){i--;render();}}; $("next").onclick=function(){if(i<cards.length-1){i++;render();}};
+render();
+</script>
